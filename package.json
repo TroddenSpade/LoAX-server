@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test.js"
+    "test": "node test.js",
+    "server": "nodemon server/server.js"
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,13 @@
   },
   "homepage": "https://github.com/TroddenSpade/LoAX-server#readme",
   "dependencies": {
-    "mongodb": "^3.1.13"
+    "bcrypt": "^3.0.4",
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.4",
+    "express": "^4.16.4",
+    "jsonwebtoken": "^8.5.0",
+    "moment-js": "^1.1.15",
+    "mongodb": "^3.1.13",
+    "mongoose": "^5.4.19"
   }
 }
