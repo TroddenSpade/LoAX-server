@@ -1,0 +1,23 @@
+{
+  "name": "loax-server",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TroddenSpade/LoAX-server.git"
+  },
+  "author": "@troddenspade",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TroddenSpade/LoAX-server/issues"
+  },
+  "homepage": "https://github.com/TroddenSpade/LoAX-server#readme",
+  "dependencies": {
+    "mongodb": "^3.1.13"
+  }
+}
