@@ -2,7 +2,13 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
+const app = express();
 
+mongoose.Promise = global.Promise;
+mongoose.connect(config.DATABASE,{
+		useNewUrlParser: true,
+        useCreateIndex: true});
+        
 const {Users} = require('./src/models/users');
 const {Posts} = require('./src/models/posts');
 const {Reports} = require('./src/models/reports');
@@ -10,14 +16,9 @@ const {Reports} = require('./src/models/reports');
 const config = require('./src/config/config').get();
 const port = config.PORT ;
 
-const app = express();
+app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 app.use(cookieParser());
-
-mongoose.Promise = global.Promise;
-mongoose.connect(config.DATABASE,{
-		useNewUrlParser: true,
-		useCreateIndex: true});
 
 // POST
 app.post('/api/adduser',(req,res)=>{
@@ -33,5 +34,5 @@ app.post('/api/adduser',(req,res)=>{
 });
 
 app.listen(port,()=>{
-    console.log("It's Working !")
+console.log("It's Working !")
 });
