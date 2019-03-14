@@ -48,10 +48,8 @@ app.get('/api/my/posts',(req,res)=>{
 
 // POST
 app.post('/api/signup',(req,res)=>{
+    console.log(req.body);
     const user = new Users(req.body);
-    Users.findOne({'email':req.body.email},(err,user)=>{
-        if(user) res.json({signup:false,err:'email exists ! try to sign in'});
-    });
     user.save((err,doc)=>{
         if(err) return res.status(400).send(err);
         res.status(200).json({
@@ -75,6 +73,17 @@ app.post('/api/signin',(req,res)=>{
             });
         });
     });
+});
+
+app.post('/api/checktoken',(req,res)=>{
+    Users.findById(req.body.id,(err,doc)=>{
+	if(err) return res.json({valid:false});
+	if(doc.token == req.body.token){
+	    res.json({valid:true,user:doc});
+	}else{
+	    res.json({valid:false});
+	}
+     });
 });
 
 // UPDATE

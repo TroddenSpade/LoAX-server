@@ -37,15 +37,15 @@ const usersSchema = mongoose.Schema({
     }
 });
 
-usersSchema.pre('save',function(next){
-    let user = this;
-    if(user.isModified('password')){
-        bcrypt.genSalt(SALT_I,function(err,salt){
+usersSchema.pre('save',(next)=>{
+	    
+console.log(this);
+    if(this.isModified('password')){
+        bcrypt.genSalt(SALT_I,(err,salt)=>{
             if(err) return next(err);
-            bcrypt.hash(user.password,salt,function(err,hash){
-             if(err) return next(err);
-                user.password = hash;
-		next();
+            bcrypt.hash(this.password,salt,(err,hash)=>{
+                if(err) return next(err);
+                this.password = hash;
             });
         });
     }else{
@@ -53,14 +53,14 @@ usersSchema.pre('save',function(next){
     }
 });
 
-usersSchema.methods.comparePassword = function(pass,cb){
-    bcrypt.compare(pass,this.password,function(err,isMatch){
+usersSchema.methods.comparePassword = (pass,cb)=>{
+    bcrypt.compare(pass,this.password,(err,isMatch)=>{
         if(err) return cb(err);
         cb(null,isMatch);
     });
 };
 
-usersSchema.methods.genToken = function(cb){
+usersSchema.methods.genToken =(cb)=>{
     const token = jwt.sign(this._id.toHexString(),config.SECRET);
     this.token = token;
     this.save((err,user)=>{
@@ -69,10 +69,9 @@ usersSchema.methods.genToken = function(cb){
     });
 };
 
-usersSchema.statics.findByToken = function(token,cb){
-    let user = this;
+usersSchema.statics.findByToken = (token,cb)=>{
     jwt.verify(token,config.SECRET,(err,decode)=>{
-        user.findOne({'_id':decode,token:token},(err,user)=>{
+        this.findOne({'_id':decode,token:token},(err,user)=>{
             if(err) return cb(err);
             cb(null,user);
         });
