@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
+const config = require('./src/config/config').get();
+const port = config.PORT ;
 const app = express();
 
 mongoose.Promise = global.Promise;
@@ -13,8 +15,6 @@ const {Users} = require('./src/models/users');
 const {Posts} = require('./src/models/posts');
 const {Reports} = require('./src/models/reports');
 
-const config = require('./src/config/config').get();
-const port = config.PORT ;
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
