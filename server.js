@@ -39,17 +39,42 @@ app.get('/api/posts',(req,res)=>{
     });
 });
 
+app.get('/api/my/posts',(req,res)=>{
+    Posts.find({userid:req.query.userid},(err,doc)=>{
+        if(err) return res.status(400).send(err);
+        res.send(doc);
+    });
+});
+
 // POST
-app.post('/api/adduser',(req,res)=>{
-    console.log(req);
+app.post('/api/signup',(req,res)=>{
     const user = new Users(req.body);
+    Users.findOne({'email':req.body.email},(err,user)=>{
+        if(user) res.json({signup:false,err:'email exists ! try to sign in'});
+    });
     user.save((err,doc)=>{
         if(err) return res.status(400).send(err);
         res.status(200).json({
-            post:true,
-            post_id:doc._id
-        })
-    })
+            signup:true,
+            user:doc
+        });
+    });
+});
+
+app.post('/api/signin',(req,res)=>{
+    Users.findOne({'email':req.body.email},(err,user)=>{
+        if(!user) res.json({isAuth:false,err:'email doesnt exists !'});
+        user.comparePassword(req.body.password,(err,isMatch)=>{
+            if(!isMatch) return res.json({isAuth:false,err:"wrong password !"});
+            user.genToken((err,user)=>{
+                if(err) return res.status(400).send(err);
+                res.json({
+                    isAuth:true,
+                    user:user,
+                });
+            });
+        });
+    });
 });
 
 // UPDATE
