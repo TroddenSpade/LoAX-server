@@ -7,7 +7,7 @@ const {Users} = require('./src/models/users');
 const {Posts} = require('./src/models/posts');
 const {Reports} = require('./src/models/reports');
 
-const config = require('../config/config').get();
+const config = require('./src/config/config').get();
 const port = config.PORT ;
 
 const app = express();
@@ -15,10 +15,13 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 mongoose.Promise = global.Promise;
-mongoose.connect(config.DATABASE);
+mongoose.connect(config.DATABASE,{
+		useNewUrlParser: true,
+		useCreateIndex: true});
 
 // POST
 app.post('/api/adduser',(req,res)=>{
+    console.log(req);
     const user = new Users(req.body);
     user.save((err,doc)=>{
         if(err) return res.status(400).send(err);
