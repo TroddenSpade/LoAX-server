@@ -40,10 +40,19 @@ const postsSchema = mongoose.Schema({
     tags:{
         type:Array,
     },
-
-    userid:{
-        type:String,
-        required:true,
+    user_data:{
+        avatar:{
+            type:String,
+            default:""
+	},
+        username:{
+            type:String,
+	    default:""
+        },
+        userid:{
+            type:String,
+            required:true,
+        }
     }
 });
 
