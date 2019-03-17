@@ -33,9 +33,15 @@ app.get('/api/posts',(req,res)=>{
     let skip = parseInt(req.query.skip);
     let limit = parseInt(req.query.limit);
     let order = req.query.order;
-    Posts.find().skip(skip).sort({_id:order}).limit(limit).exec((err,doc)=>{
+    Posts.find().skip(skip).sort({_id:order}).limit(limit).exec(async(err,doc)=>{
         if(err) return res.status(400).send(err);
-        res.send(doc);
+	for(let i=0;i<doc.length;i++){
+	    await Users.findById(doc[i].user_data.userid,(error,user)=>{
+		doc[i].user_data.username = user.username;
+		doc[i].user_data.avatar = user.avatar;
+	    });
+	}
+	res.send(doc);
     });
 });
 
@@ -84,6 +90,17 @@ app.post('/api/checktoken',(req,res)=>{
 	    res.json({valid:false});
 	}
      });
+});
+
+app.post('/api/addpost',(req,res)=>{
+    const post = new Posts(req.body);
+    post.save((err,doc)=>{
+        if(err) return res.status(400).send(err);
+        res.status(200).json({
+            post_success:true,
+            user:doc
+        });
+    });
 });
 
 // UPDATE
