@@ -22,8 +22,27 @@ app.use(cookieParser());
 
 // GET
 app.get('/api/getuser',(req,res)=>{
-    let id = req.query.id;
+    let id = req.query.userid;
     Users.findById(id,(err,doc)=>{
+        if(err) return res.status(400).send(err);
+        res.json({
+            username:doc.username,
+	    bio:doc.bio,
+	    avatar:doc.avatar
+        });
+    });
+});
+
+app.get('/api/getuserposts',(req,res)=>{
+    let id = req.query.userid;
+    let skip = parseInt(req.query.skip);
+    let limit = parseInt(req.query.limit);
+    let order = req.query.order;
+    Posts.find({"user_data.userid":id})
+    .skip(skip)
+    .sort({_id:order})
+    .limit(limit)
+    .exec((err,doc)=>{
         if(err) return res.status(400).send(err);
         res.send(doc);
     });
@@ -89,7 +108,9 @@ app.post('/api/signin',(req,res)=>{
 });
 
 app.post('/api/checktoken',(req,res)=>{
+	console.log(req.body)
     Users.findById(req.body.id,(err,doc)=>{
+	console.log(doc)
 	if(err) return res.json({valid:false});
 	if(doc.token == req.body.token){
 	    res.json({valid:true,user:doc});
