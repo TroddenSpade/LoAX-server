@@ -45,8 +45,15 @@ app.get('/api/posts',(req,res)=>{
     });
 });
 
-app.get('/api/my/posts',(req,res)=>{
-    Posts.find({userid:req.query.userid},(err,doc)=>{
+app.get('/api/myposts',(req,res)=>{
+    let skip = parseInt(req.query.skip);
+    let limit = parseInt(req.query.limit);
+    let order = req.query.order;
+    Posts.find({"user_data.userid":req.query.userid})
+	.skip(skip)
+	.sort({_id:order})
+	.limit(limit)
+	.exec((err,doc)=>{
         if(err) return res.status(400).send(err);
         res.send(doc);
     });
