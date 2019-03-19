@@ -2,9 +2,19 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
+const multer = require('multer');
 const config = require('./src/config/config').get();
 const port = config.PORT ;
 const app = express();
+const storage = multer.diskStorage({
+    destination: function(req,file,cb){
+        cb(null,'images/');
+    },
+    filename: function(req,file,cb){
+        cb(null,file.filename);
+    }
+});
+const upload = multer({storage:storage});
 
 mongoose.Promise = global.Promise;
 mongoose.connect(config.DATABASE,{
@@ -78,9 +88,23 @@ app.get('/api/myposts',(req,res)=>{
     });
 });
 
+app.post('/api/search',(req,res)=>{
+    let skip = parseInt(req.query.skip);
+    let limit = parseInt(req.query.limit);
+    let order = req.query.order;
+    let tag = req.query.tag;
+    Posts.find({tags: { $elemMatch: { $eq: tag } }})
+	.skip(skip)
+	.sort({_id:order})
+	.limit(limit)
+	.exec((err,doc)=>{
+        if(err) return res.status(400).send(err);
+        res.send(doc);
+    });
+});
+
 // POST
 app.post('/api/signup',(req,res)=>{
-    console.log(req.body);
     const user = new Users(req.body);
     user.save((err,doc)=>{
         if(err) return res.status(400).send(err);
@@ -108,9 +132,7 @@ app.post('/api/signin',(req,res)=>{
 });
 
 app.post('/api/checktoken',(req,res)=>{
-	console.log(req.body)
     Users.findById(req.body.id,(err,doc)=>{
-	console.log(doc)
 	if(err) return res.json({valid:false});
 	if(doc.token == req.body.token){
 	    res.json({valid:true,user:doc});
@@ -120,8 +142,11 @@ app.post('/api/checktoken',(req,res)=>{
      });
 });
 
-app.post('/api/addpost',(req,res)=>{
-    const post = new Posts(req.body);
+app.post('/api/addpost',upload.single('image'),(req,res)=>{
+    const post = new Posts({
+        ...req.body,
+        image_url:file.path,
+    });
     post.save((err,doc)=>{
         if(err) return res.status(400).send(err);
         res.status(200).json({
