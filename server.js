@@ -5,16 +5,22 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const config = require('./src/config/config').get();
 const port = config.PORT ;
+const SERVER = config.SERVER;
 const app = express();
 const storage = multer.diskStorage({
     destination: function(req,file,cb){
-        cb(null,'images/');
+        cb(null,'./images/');
     },
-    filename: function(req,file,cb){
-        cb(null,file.filename);
-    }
+
 });
-const upload = multer({storage:storage});
+const fileFilter =(req,file,cb)=>{
+    if(file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'){
+	cb(null,true);
+    }else{
+	cb("cant upload that format",false);
+    }
+}
+const upload = multer({storage:storage,fileFilter:fileFilter});
 
 mongoose.Promise = global.Promise;
 mongoose.connect(config.DATABASE,{
@@ -28,6 +34,7 @@ const {Reports} = require('./src/models/reports');
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
+app.use('/images',express.static('images'));
 app.use(cookieParser());
 
 // GET
@@ -88,7 +95,7 @@ app.get('/api/myposts',(req,res)=>{
     });
 });
 
-app.post('/api/search',(req,res)=>{
+app.get('/api/search',(req,res)=>{
     let skip = parseInt(req.query.skip);
     let limit = parseInt(req.query.limit);
     let order = req.query.order;
@@ -145,13 +152,16 @@ app.post('/api/checktoken',(req,res)=>{
 app.post('/api/addpost',upload.single('image'),(req,res)=>{
     const post = new Posts({
         ...req.body,
-        image_url:file.path,
+        image_url:`${SERVER}/${req.file.path}`,
     });
     post.save((err,doc)=>{
-        if(err) return res.status(400).send(err);
+        if(err) return res.status(400).json({
+	    post_success:false,
+	    err:err
+	});
         res.status(200).json({
             post_success:true,
-            user:doc
+            post:doc
         });
     });
 });
