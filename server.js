@@ -156,9 +156,9 @@ app.post('/api/addpost',upload.single('image'),(req,res)=>{
     });
     post.save((err,doc)=>{
         if(err) return res.status(400).json({
-	    post_success:false,
-	    err:err
-	});
+            post_success:false,
+            err:err
+	    });
         res.status(200).json({
             post_success:true,
             post:doc
@@ -167,8 +167,30 @@ app.post('/api/addpost',upload.single('image'),(req,res)=>{
 });
 
 // UPDATE
-app.post('/api/userupdate',(req,res)=>{
-    Users.findByIdAndUpdate(req.body._id,req.body,{new:true},(err,doc)=>{
+app.post('/api/userupdate',upload.single('image'),(req,res)=>{
+    const userid = req.query.id;
+    Users.findByIdAndUpdate(userid,{
+        ...req.body,
+        avatar:`${SERVER}/${req.file.path}`,
+    },
+    {new:true},
+    (err,doc)=>{
+        if(err) return res.status(400).send(err);
+        res.json({
+            update:true,
+            user:doc,
+        });
+    });
+});
+
+app.post('/api/postupdate',(req,res)=>{
+    const postid = req.query.id;
+    Users.findByIdAndUpdate(postid,{
+        ...req.body,
+        image_url:`${SERVER}/${req.file.path}`,
+    },
+    {new:true},
+    (err,doc)=>{
         if(err) return res.status(400).send(err);
         res.json({
             update:true,
