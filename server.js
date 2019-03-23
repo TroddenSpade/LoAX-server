@@ -87,7 +87,7 @@ app.get('/api/myposts',(req,res)=>{
     let order = req.query.order;
     Posts.find({"user_data.userid":req.query.userid})
 	.skip(skip)
-	.sort({_id:order})
+a	.sort({_id:order})
 	.limit(limit)
 	.exec((err,doc)=>{
         if(err) return res.status(400).send(err);
@@ -100,7 +100,7 @@ app.get('/api/search',(req,res)=>{
     let limit = parseInt(req.query.limit);
     let order = req.query.order;
     let tag = req.query.tag;
-    Posts.find({tags: { $elemMatch: { $eq: tag } }})
+    Posts.find({tags: { $in: [tag] }})
 	.skip(skip)
 	.sort({_id:order})
 	.limit(limit)
@@ -169,12 +169,17 @@ app.post('/api/addpost',upload.single('image'),(req,res)=>{
 // UPDATE
 app.post('/api/userupdate',upload.single('image'),(req,res)=>{
     const userid = req.query.id;
-    Users.findByIdAndUpdate(userid,{
-        ...req.body,
-        avatar:`${SERVER}/${req.file.path}`,
-    },
-    {new:true},
-    (err,doc)=>{
+    if(req.file == undefined){
+        var data ={
+            ...req.body
+        };
+    }else{
+	var data = {
+	    ...req.body,
+	    avatar:`${SERVER}/${req.file.path}`
+	};
+    }
+    Users.findByIdAndUpdate(userid,data,{new:true},(err,doc)=>{
         if(err) return res.status(400).send(err);
         res.json({
             update:true,
