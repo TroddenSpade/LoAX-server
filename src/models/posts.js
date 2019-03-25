@@ -41,18 +41,9 @@ const postsSchema = mongoose.Schema({
         type:[String],
     },
     user_data:{
-        avatar:{
-            type:String,
-            default:""
-	    },
-        username:{
-            type:String,
-	        default:""
-        },
-        userid:{
-            type:String,
-            required:true,
-        }
+        type : mongoose.Schema.Types.ObjectId,
+	ref : 'Users',
+	required : true
     }
 });
 
