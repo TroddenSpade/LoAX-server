@@ -50,12 +50,17 @@ app.get('/api/getuser',(req,res)=>{
     });
 });
 
+String.prototype.toObjectId = function() {
+  var ObjectId = (require('mongoose').Types.ObjectId);
+  return new ObjectId(this.toString());
+};
+
 app.get('/api/getuserposts',(req,res)=>{
     let id = req.query.userid;
     let skip = parseInt(req.query.skip);
     let limit = parseInt(req.query.limit);
     let order = req.query.order;
-    Posts.find({"user_data.userid":id})
+    Posts.find({ user_data : id.toObjectId() })
     .skip(skip)
     .sort({_id:order})
     .limit(limit)
@@ -65,29 +70,29 @@ app.get('/api/getuserposts',(req,res)=>{
     });
 });
 
-app.get('/api/posts',(req,res)=>{
+app.get('/api/posts',function(req,res){
     let skip = parseInt(req.query.skip);
     let limit = parseInt(req.query.limit);
     let order = req.query.order;
-    Posts.find().skip(skip).sort({_id:order}).limit(limit).exec(async(err,doc)=>{
-        if(err) return res.status(400).send(err);
-	for(let i=0;i<doc.length;i++){
-	    await Users.findById(doc[i].user_data.userid,(error,user)=>{
-		doc[i].user_data.username = user.username;
-		doc[i].user_data.avatar = user.avatar;
-	    });
-	}
-	res.send(doc);
-    });
+    Posts.find()
+	.skip(skip)
+	.sort({_id:order})
+	.limit(limit)
+	.populate('user_data','username avatar')
+	.exec(async function(err,doc){
+            if(err) return res.status(400).send(err);
+	    res.send(doc);
+	});
 });
 
 app.get('/api/myposts',(req,res)=>{
     let skip = parseInt(req.query.skip);
     let limit = parseInt(req.query.limit);
     let order = req.query.order;
-    Posts.find({"user_data.userid":req.query.userid})
+    let id = req.query.userid;
+    Posts.find({user_data : id.toObjectId() })
 	.skip(skip)
-a	.sort({_id:order})
+ 	.sort({_id:order})
 	.limit(limit)
 	.exec((err,doc)=>{
         if(err) return res.status(400).send(err);
@@ -95,7 +100,7 @@ a	.sort({_id:order})
     });
 });
 
-app.get('/api/search',(req,res)=>{
+app.get('/api/search',async(req,res)=>{
     let skip = parseInt(req.query.skip);
     let limit = parseInt(req.query.limit);
     let order = req.query.order;
@@ -104,10 +109,11 @@ app.get('/api/search',(req,res)=>{
 	.skip(skip)
 	.sort({_id:order})
 	.limit(limit)
-	.exec((err,doc)=>{
-        if(err) return res.status(400).send(err);
-        res.send(doc);
-    });
+	.populate('user_data','username avatar')
+	.exec(async(err,doc)=>{
+            if(err) return res.status(400).send(err);
+            res.send(doc);
+	});
 });
 
 // POST
@@ -166,9 +172,22 @@ app.post('/api/addpost',upload.single('image'),(req,res)=>{
     });
 });
 
+app.post('/api/report',(req,res)=>{
+    const report = new Reports(req.body);
+    report.save((err,doc)=>{
+	if(err) return res.status(400).json({
+	    report:false,
+	    error:err
+	});
+	res.status(200).json({
+	    report:true
+	});
+    });
+});
+
 // UPDATE
 app.post('/api/userupdate',upload.single('image'),(req,res)=>{
-    const userid = req.query.id;
+    const userid = req.query.userid;
     if(req.file == undefined){
         var data ={
             ...req.body
