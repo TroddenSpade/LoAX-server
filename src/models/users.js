@@ -34,6 +34,10 @@ const usersSchema = mongoose.Schema({
     },
     token:{
         type:String,
+    },
+    noPosts:{
+	type:Number,
+	default:0
     }
 });
 

@@ -45,7 +45,8 @@ app.get('/api/getuser',(req,res)=>{
         res.json({
             username:doc.username,
 	    bio:doc.bio,
-	    avatar:doc.avatar
+	    avatar:doc.avatar,
+	    noPosts:doc.noPosts
         });
     });
 });
@@ -116,6 +117,22 @@ app.get('/api/search',async(req,res)=>{
 	});
 });
 
+app.get('/api/location',(req,res)=>{
+    let skip = parseInt(req.query.skip);
+    let limit = parseInt(req.query.limit);
+    let order = req.query.order;
+    let hash = req.query.hash;
+    Posts.find()
+	.skip(skip)
+	.sort({_id:order})
+	.limit()
+	.populate('user_data','username avatar')
+	.exec((err,doc)=>{
+            if(err) return res.status(400).send(err);
+            res.send(doc);
+	});
+});
+
 // POST
 app.post('/api/signup',(req,res)=>{
     const user = new Users(req.body);
@@ -130,7 +147,7 @@ app.post('/api/signup',(req,res)=>{
 
 app.post('/api/signin',(req,res)=>{
     Users.findOne({'email':req.body.email},(err,user)=>{
-        if(!user) res.json({isAuth:false,err:'email doesnt exists !'});
+        if(!user) return res.json({isAuth:false,err:'email doesnt exist !'});
         user.comparePassword(req.body.password,(err,isMatch)=>{
             if(!isMatch) return res.json({isAuth:false,err:"wrong password !"});
             user.genToken((err,user)=>{
@@ -164,11 +181,17 @@ app.post('/api/addpost',upload.single('image'),(req,res)=>{
         if(err) return res.status(400).json({
             post_success:false,
             err:err
+	});
+	Users.findByIdAndUpdate(req.body.user_data,{ $inc: { noPosts: 1 } },(error,response)=>{
+            if(error) return response.status(400).json({
+		post_success:false,
+		err:error
 	    });
-        res.status(200).json({
-            post_success:true,
-            post:doc
-        });
+	     res.status(200).json({
+                post_success:true,
+                post:doc
+            });
+	});
     });
 });
 
@@ -226,10 +249,14 @@ app.post('/api/postupdate',(req,res)=>{
 // DELETE
 app.delete('/api/deletepost',(req,res)=>{
     let id = req.query.id;
+    let userid = req.query.userid;
     Posts.findByIdAndRemove(id,(err,doc)=>{
         if(err) return res.status(400).send(err);
-        res.json({
-            delete:true,
+	 Users.findByIdAndUpdate(userid,{$inc: { noPosts: -1 } },(error,user)=>{
+             if(err) return res.status(400).send(err);
+             res.json({
+         	delete:true,
+             });
         });
     });
 });
