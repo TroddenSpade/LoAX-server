@@ -13,7 +13,6 @@ const postsSchema = mongoose.Schema({
     },
     caption:{
         type:String,
-        required:true,
     },
     region:{
         latitude :{
